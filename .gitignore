@@ -178,4 +178,3 @@ orb_charts/cert.pem
 orb_charts/key.pem
 orb_charts/probe_app/key.pem
 orb_charts/probe_app/cert.pem
-orb_charts/orb_charts/settings.py

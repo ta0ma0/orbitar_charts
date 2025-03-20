@@ -78,27 +78,24 @@ def orbitar_all_feed_posts(request):
         'Authorization': f'Bearer {token.access_token}',
     }
     data = {
-        'page': 1,      # Начнем с первой страницы
-        'perpage': 20,  # Количество постов на странице
-        'format': 'html', #формат ответа jso
+        'page': 1,
+        'perpage': 50,
+        'format': 'html',
     }
     response = requests.post(settings.ORBITAR_FEED_ALL_URL, headers=headers, json=data)
 
-
     if response.status_code == 200:
         feed_data = response.json()
-        # print(type(feed_data))
-        # print(feed_data)
-        # for item in feed_data['payload']['posts']:
-        #     print(item['id'])
-        ids = [item['id'] for item in feed_data['payload']['posts']]
-        # print(ids)
-        # votes = _get_voites(ids)
-        # print(votes)
+        posts = feed_data['payload']['posts']  # Получаем список постов
 
-
-        for item in feed_data['payload']['posts']:
-            # print(item)
+        # Преобразуем данные в список словарей, как в предыдущем примере
+        data_app = []
+        for item in posts:
+            id = item['id']
+            if not item['title']:
+                link = 'https://orbitar.space/p' + str(id)
+            else:
+                link = 'https://orbitar.space/s/' + item['site'] + '/p' + str(id)
             try:
                 title = item['title']
             except KeyError:
@@ -106,27 +103,37 @@ def orbitar_all_feed_posts(request):
             author = item['author']
             created = item['created']
             sub_orbit = item['site']
+            post_id = None
             try:
                 post_id = item['id']
             except KeyError:
                 pass
-            comments = item['comments']
-            rating = item['rating']            
+            rating = item['rating']
+            comments = item['comments']  # Добавляем комментарии
 
-            data_app = {
-            'post_id': post_id,
-            'title': title,
-            'created': created,
-            'sub_orbit': sub_orbit,
-            'author': author,
-            'comments': comments,
-            'rating': rating
+            data_app.append({
+                'post_id': post_id,
+                'title': title,
+                'created': created,
+                'sub_orbit': sub_orbit,
+                'author': author,
+                'rating': rating,
+                'comments': comments,
+                'link': link,
+            })
 
-            }   
-            data_app_list.append(data_app)
-        print(data_app_list)
-        return render(request, 'probe_app/orbitar_all_feed_posts.html', {'posts': data_app_list})
+        # Получаем параметр sort_by из запроса
+        sort_by = request.GET.get('sort_by')
 
+        # Сортируем список data_app в зависимости от параметра sort_by
+        if sort_by == 'comments_max':
+            data_app = comments_max_sort(data_app)
+        elif sort_by == 'rating_max':
+            data_app = rating_max_sort(data_app)
+        elif sort_by == 'rating_min':
+            data_app = rating_min_sort(data_app)
+
+        return render(request, 'probe_app/orbitar_all_feed_posts.html', {'posts': data_app})
     else:
         return render(request, 'probe_app/orbitar_all_feed_posts.html', {'error': f'Ошибка при получении последней страницы: {response.text}'})
 

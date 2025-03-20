@@ -1,21 +1,31 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
 <!DOCTYPE html>
 <html>
 <head>
     <title>Orbitar Global Feed Posts</title>
 </head>
 <body>
+    <form method="get">
+        <label for="sort_by">Сортировать по:</label>
+        <select name="sort_by" id="sort_by">
+            <option value="comments_max">Комментарии (макс)</option>
+            <option value="rating_max">Рейтинг (макс)</option>
+            <option value="rating_min">Рейтинг (мин)</option>
+        </select>
+        <button type="submit">Сортировать</button>
+    </form>
+
     {% if posts %}
-        <h1>Глобальная лента постов</h1>
-        <!-- <p> {{ posts }}</p> -->
+        <h1>Глобальная лента постов (Последние 50)</h1>
         <ul>
             {% for post in posts %}
-                <li>
-                    <!-- <h2>{{ post }}</h2> -->
-                    <p>{{ post.title }}</p>
-                    <p>Дата публикации: {{ post.created }}</p>
-                    <p>Подорбита: {{ post.sub_orbit }}</p>                    
-                    <p>Комментарии: {{ post.comments }}</p>
-                    <p>Рейтинг: {{ post.rating }}</p>
+                <li class="post">
+                    <a href="{{ post.link }}"><p>{{ post.title }}</p></a>
+                    <p>Дата публикации: <b>{{ post.created }}</b></p>
+                    <p>Подорбита: <b>{{ post.sub_orbit }}</b></p>
+                    <p>Комментарии: <b>{{ post.comments }}</b></p>
+                    <p>Рейтинг: <b>{{ post.rating }}</b></p>
                 </li>
             {% endfor %}
         </ul>
