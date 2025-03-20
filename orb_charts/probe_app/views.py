@@ -9,7 +9,7 @@ import secrets
 import base64
 
 ids = []  # Объявляем переменную ids на глобальном уровне
-
+data_app_list = []
 
 def orbitar_login(request):
     client = WebApplicationClient(settings.ORBITAR_CLIENT_ID)
@@ -18,7 +18,7 @@ def orbitar_login(request):
     authorization_url = client.prepare_request_uri(
         settings.ORBITAR_AUTHORIZATION_URL,
         redirect_uri=request.build_absolute_uri('/callback_orbitar'),
-        scope=['feed'],
+        scope=['feed', 'vote:list'],
         state=state, #добавляем state в запрос
     )
     return redirect(authorization_url)
@@ -92,9 +92,94 @@ def orbitar_all_feed_posts(request):
         # for item in feed_data['payload']['posts']:
         #     print(item['id'])
         ids = [item['id'] for item in feed_data['payload']['posts']]
-        print(ids)
+        # print(ids)
+        # votes = _get_voites(ids)
+        # print(votes)
 
-        return render(request, 'probe_app/orbitar_all_feed_posts.html', {'posts': feed_data})
+
+        for item in feed_data['payload']['posts']:
+            # print(item)
+            try:
+                title = item['title']
+            except KeyError:
+                title = 'No Title'
+            author = item['author']
+            created = item['created']
+            sub_orbit = item['site']
+            try:
+                post_id = item['id']
+            except KeyError:
+                pass
+            comments = item['comments']
+            rating = item['rating']            
+
+            data_app = {
+            'post_id': post_id,
+            'title': title,
+            'created': created,
+            'sub_orbit': sub_orbit,
+            'author': author,
+            'comments': comments,
+            'rating': rating
+
+            }   
+            data_app_list.append(data_app)
+        print(data_app_list)
+        return render(request, 'probe_app/orbitar_all_feed_posts.html', {'posts': data_app_list})
 
     else:
         return render(request, 'probe_app/orbitar_all_feed_posts.html', {'error': f'Ошибка при получении последней страницы: {response.text}'})
+
+
+def _get_voites(ids):
+    token = OrbitarToken.objects.latest('expires_at')
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {token.access_token}',
+    }
+    id_votes = {}
+    for id in ids:
+        data = {
+            'type': 'post',
+            'id': f'{id}',  
+        }
+        print(id)
+        response = requests.post(settings.ORBITAR_VOTES_LIST, headers=headers, json=data)
+
+
+        if response.status_code == 200:
+            votes_data = response.json()
+            list_votes = [item['vote'] for item in votes_data['payload']['votes']]
+            total_votes = _summ_votes(list_votes)
+            print(total_votes)
+            try:
+                id_votes[id] = total_votes
+            except Exception as err:
+                id_votes[id] = 'None'
+                pass
+    print(id_votes)
+    return id_votes
+
+def _summ_votes(list_votes):
+    sum = 0 
+    try:
+        for i in list_votes:
+            sum = sum + i
+    except TypeError:
+        pass
+    return sum
+
+def comments_max_sort(data_app):
+    """Сортирует список словарей по убыванию количества комментариев."""
+    data_app.sort(key=lambda item: item['comments'], reverse=True)
+    return data_app
+
+def rating_max_sort(data_app):
+    """Сортирует список словарей по убыванию рейтинга."""
+    data_app.sort(key=lambda item: item['rating'], reverse=True)
+    return data_app
+
+def rating_min_sort(data_app):
+    """Сортирует список словарей по возрастанию рейтинга."""
+    data_app.sort(key=lambda item: item['rating'])
+    return data_app

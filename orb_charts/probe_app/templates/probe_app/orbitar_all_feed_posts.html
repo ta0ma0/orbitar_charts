@@ -8,12 +8,14 @@
         <h1>Глобальная лента постов</h1>
         <!-- <p> {{ posts }}</p> -->
         <ul>
-            {% for post in posts.payload.posts %}
+            {% for post in posts %}
                 <li>
-                    <h2>{{ post.title }}</h2>
-                    <p>{{ post.content }}</p>
-                    <p>Автор: {{ post.author }}</p>
+                    <!-- <h2>{{ post }}</h2> -->
+                    <p>{{ post.title }}</p>
                     <p>Дата публикации: {{ post.created }}</p>
+                    <p>Подорбита: {{ post.sub_orbit }}</p>                    
+                    <p>Комментарии: {{ post.comments }}</p>
+                    <p>Рейтинг: {{ post.rating }}</p>
                 </li>
             {% endfor %}
         </ul>
