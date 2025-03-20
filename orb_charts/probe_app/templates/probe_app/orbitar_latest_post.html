@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Latest Orbitar Post</title>
+</head>
+<body>
+    {% if post %}
+        <h1>{{ post.title }}</h1>
+        <p>{{ post.content }}</p>
+        <p>Автор: {{ post.author }}</p>
+        <p>Дата публикации: {{ post.date_published }}</p>
+
+    {% elif error %}
+        <p>{{ error }}</p>
+    {% else %}
+        <p>Загрузка...</p>
+    {% endif %}
+</body>
+</html>
