@@ -139,4 +139,4 @@ ORBITAR_CLIENT_SECRET = os.getenv('ORBITAR_CLIENT_SECRET')
 print(BASE_DIR, ORBITAR_CLIENT_ID, ORBITAR_CLIENT_SECRET)
 import os
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join('/usr/share/nginx/orbitar_chart/', 'static')
