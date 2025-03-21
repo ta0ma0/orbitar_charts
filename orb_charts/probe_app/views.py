@@ -96,7 +96,10 @@ def orbitar_all_feed_posts(request):
                 link = 'https://orbitar.space/p' + str(id)
             else:
                 link = 'https://orbitar.space/s/' + item['site'] + '/p' + str(id)
-            title = item.get('title', 'No Title')  # Используем get() с значением по умолчанию
+            try:
+                title = item['title']
+            except KeyError:
+                title = item[title] = 'No Title'
             author = item['author']
             created = item['created']
             sub_orbit = item['site']
