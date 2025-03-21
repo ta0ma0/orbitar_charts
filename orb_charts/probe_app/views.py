@@ -96,11 +96,10 @@ def orbitar_all_feed_posts(request):
                 link = 'https://orbitar.space/p' + str(id)
             else:
                 link = 'https://orbitar.space/s/' + item['site'] + '/p' + str(id)
-            try:
+            if item['title'] == '':
+                item['title'] = 'No Title'
+            else:
                 title = item['title']
-            except Exception:
-                title = 'No Title'
-                continue
             author = item['author']
             created = item['created']
             sub_orbit = item['site']
