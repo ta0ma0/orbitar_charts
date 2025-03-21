@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-1glzh@8enitra6t)mhid-6!g7905*%srtu890car&b358o(26m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['orbitarchart.2077911.xyz']
+ALLOWED_HOSTS = ['localhost.com']
 
 
 # Application definition
