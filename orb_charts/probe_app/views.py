@@ -100,6 +100,7 @@ def orbitar_all_feed_posts(request):
                 title = item['title']
             except KeyError:
                 title = item['title'] = 'No Title'
+                continue
             author = item['author']
             created = item['created']
             sub_orbit = item['site']
