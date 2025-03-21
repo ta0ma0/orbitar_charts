@@ -98,7 +98,7 @@ def orbitar_all_feed_posts(request):
                 link = 'https://orbitar.space/s/' + item['site'] + '/p' + str(id)
             try:
                 title = item['title']
-            except KeyError:
+            except Exception:
                 title = 'No Title'
                 continue
             author = item['author']
