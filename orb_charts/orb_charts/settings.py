@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'probe_app',
+    'random_post',
     'django_extensions',
 ]
 
