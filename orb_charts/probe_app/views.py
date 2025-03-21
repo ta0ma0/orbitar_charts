@@ -97,7 +97,7 @@ def orbitar_all_feed_posts(request):
             else:
                 link = 'https://orbitar.space/s/' + item['site'] + '/p' + str(id)
             if item['title'] == '':
-                item['title'] = 'No Title'
+                title = 'No Title'
             else:
                 title = item['title']
             author = item['author']
