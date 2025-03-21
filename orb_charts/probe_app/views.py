@@ -92,14 +92,11 @@ def orbitar_all_feed_posts(request):
         data_app = []
         for item in posts:
             id = item['id']
-            if not item['title']:
+            if item['site'] == 'main':
                 link = 'https://orbitar.space/p' + str(id)
             else:
                 link = 'https://orbitar.space/s/' + item['site'] + '/p' + str(id)
-            try:
-                title = item['title']
-            except KeyError:
-                title = item[title] = 'No Title'
+            title = item.get('title', 'No Title')  # Используем get() с значением по умолчанию
             author = item['author']
             created = item['created']
             sub_orbit = item['site']
