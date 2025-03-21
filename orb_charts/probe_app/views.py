@@ -104,10 +104,10 @@ def orbitar_all_feed_posts(request):
             author = item['author']
             created = item['created']
             sub_orbit = item['site']
-            post_id = None
             try:
                 post_id = item['id']
             except KeyError:
+                post_id = None
                 pass
             rating = item['rating']
             comments = item['comments']  # Добавляем комментарии
