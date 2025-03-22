@@ -6,11 +6,11 @@
     <title>Orbitar Random Post</title>
 </head>
 <body>
-    <form method="get">
-        <label for="sort_by">Сортировать по:</label>
-        <a href="{% url 'probe_app:orbitar_all_feed_posts' %}"></a>
-        <button type="submit">Сортировать</button>
-    </form>
+    <a href="{% url 'probe_app:orbitar_all_feed_posts' %}">На сортировочную.</a>
+    <button type="button" id="random-post-button">Ещё один случайный пост</button>
+    <div id="random-post-container">
+        
+
 
     {% if post %}
         <h1>Ура! Случайный пост!</h1>
@@ -28,5 +28,15 @@
     {% else %}
         <p>Загрузка...</p>
     {% endif %}
+</div>
+<script>
+    document.getElementById('random-post-button').addEventListener('click', function() {
+        fetch('/random') // Отправляем GET-запрос на /random
+            .then(response => response.text()) // Получаем текст ответа
+            .then(data => {
+                document.getElementById('random-post-container').innerHTML = data; // Обновляем контейнер
+            });
+    });
+</script>
 </body>
 </html>
