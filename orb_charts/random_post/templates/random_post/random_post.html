@@ -7,7 +7,7 @@
 </head>
 <body>
     <a href="{% url 'probe_app:orbitar_all_feed_posts' %}">На сортировочную.</a>
-    <button type="button" id="random-post-button">Ещё один случайный пост</button>
+    <button type="button" id="reload-random-post">Ещё один случайный пост</button>
     <div id="random-post-container">
         
 
@@ -30,18 +30,8 @@
     {% endif %}
 </div>
 <script>
-    document.getElementById('random-post-button').addEventListener('click', function() {
-        fetch('/random')
-            .then(response => response.text())
-            .then(data => {
-                // Извлекаем только HTML-код поста
-                const postHtml = data.match(/<div class="post">[\s\S]*?<\/div>/);
-                if (postHtml) {
-                    document.getElementById('random-post-container').innerHTML = postHtml[0];
-                } else {
-                    console.error('Не удалось извлечь HTML-код поста');
-                }
-            });
+    document.getElementById('reload-random-post').addEventListener('click', function() {
+        location.reload(); // Перезагружаем текущую страницу
     });
 </script>
 </body>
