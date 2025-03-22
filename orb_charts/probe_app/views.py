@@ -72,7 +72,13 @@ def callback_orbitar(request):
 
 
 def refresh_orbitar_token(token):
-    if token.expires_at > datetime.now():
+    #делаем expires_at aware, если он naive
+    if dj_timezone.is_naive(token.expires_at):
+        expires_at_aware = dj_timezone.make_aware(token.expires_at, timezone.utc)
+    else:
+        expires_at_aware = token.expires_at
+
+    if expires_at_aware > dj_timezone.now():
         return token #токен еще валиден
 
     if not token.refresh_token:
@@ -98,7 +104,7 @@ def refresh_orbitar_token(token):
 
     if response.status_code == 200:
         token_data = response.json()
-        expires_at = datetime.now() + timedelta(seconds=token_data['expires_in'])
+        expires_at = dj_timezone.now() + timedelta(seconds=token_data['expires_in'])
 
         token.access_token = token_data['access_token']
         token.refresh_token = token_data.get('refresh_token', token.refresh_token) #обновляем refresh токен, если он есть в ответе
