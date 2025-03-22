@@ -8,11 +8,7 @@
 <body>
     <form method="get">
         <label for="sort_by">Сортировать по:</label>
-        <select name="sort_by" id="sort_by">
-            <option value="comments_max">Комментарии (макс)</option>
-            <option value="rating_max">Рейтинг (макс)</option>
-            <option value="rating_min">Рейтинг (мин)</option>
-        </select>
+        <a href="{% url 'probe_app:orbitar_all_feed_posts' %}"></a>
         <button type="submit">Сортировать</button>
     </form>
 
