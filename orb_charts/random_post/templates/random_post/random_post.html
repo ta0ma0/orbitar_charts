@@ -31,10 +31,16 @@
 </div>
 <script>
     document.getElementById('random-post-button').addEventListener('click', function() {
-        fetch('/random') // Отправляем GET-запрос на /random
-            .then(response => response.text()) // Получаем текст ответа
+        fetch('/random')
+            .then(response => response.text())
             .then(data => {
-                document.getElementById('random-post-container').innerHTML = data; // Обновляем контейнер
+                // Извлекаем только HTML-код поста
+                const postHtml = data.match(/<div class="post">[\s\S]*?<\/div>/);
+                if (postHtml) {
+                    document.getElementById('random-post-container').innerHTML = postHtml[0];
+                } else {
+                    console.error('Не удалось извлечь HTML-код поста');
+                }
             });
     });
 </script>
