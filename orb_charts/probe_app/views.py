@@ -7,6 +7,7 @@ from .models import OrbitarToken
 import json
 import secrets
 import base64
+from django.utils import timezone as dj_timezone
 
 ids = []  # Объявляем переменную ids на глобальном уровне
 data_app_list = []
