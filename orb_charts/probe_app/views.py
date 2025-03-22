@@ -7,6 +7,7 @@ from .models import OrbitarToken
 import json
 import secrets
 import base64
+from django.utils import timezone as dj_timezone
 
 ids = []  # Объявляем переменную ids на глобальном уровне
 data_app_list = []
@@ -18,7 +19,7 @@ def orbitar_login(request):
     authorization_url = client.prepare_request_uri(
         settings.ORBITAR_AUTHORIZATION_URL,
         redirect_uri=request.build_absolute_uri('/callback_orbitar'),
-        scope=['feed', 'vote:list'],
+        scope=['feed', 'vote:list', 'post:get'],
         state=state, #добавляем state в запрос
     )
     return redirect(authorization_url)
@@ -70,9 +71,63 @@ def callback_orbitar(request):
     else:
         return render(request, 'probe_app/orbitar_feed_posts.html', {'error': f'Ошибка при получении токена: {response.text}'})
 
+
+def refresh_orbitar_token(token):
+    #делаем expires_at aware, если он naive
+    if dj_timezone.is_naive(token.expires_at):
+        expires_at_aware = dj_timezone.make_aware(token.expires_at, timezone.utc)
+    else:
+        expires_at_aware = token.expires_at
+
+    if expires_at_aware > dj_timezone.now():
+        return token #токен еще валиден
+
+    if not token.refresh_token:
+        return None #нет refresh token, надо логиниться
+
+    client_id = settings.ORBITAR_CLIENT_ID
+    client_secret = settings.ORBITAR_CLIENT_SECRET
+    auth_string = f"{client_id}:{client_secret}"
+    auth_bytes = auth_string.encode("ascii")
+    auth_base64 = base64.b64encode(auth_bytes).decode("ascii")
+
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": f"Basic {auth_base64}",
+    }
+
+    data = {
+        "grant_type": "refresh_token",
+        "refresh_token": token.refresh_token,
+    }
+
+    response = requests.post(settings.ORBITAR_TOKEN_URL, headers=headers, data=data)
+
+    if response.status_code == 200:
+        token_data = response.json()
+        expires_at = dj_timezone.now() + timedelta(seconds=token_data['expires_in'])
+
+        token.access_token = token_data['access_token']
+        token.refresh_token = token_data.get('refresh_token', token.refresh_token) #обновляем refresh токен, если он есть в ответе
+        token.expires_at = expires_at
+        token.save()
+        return token
+    else:
+        return None #ошибка обновления токена
+
 # posts_ids = []
 def orbitar_all_feed_posts(request):
-    token = OrbitarToken.objects.latest('expires_at')
+    try:
+        token = OrbitarToken.objects.latest('expires_at') #получаем последний токен
+    except OrbitarToken.DoesNotExist:
+        return redirect('/orbitar_login') #если токенов нет, логинимся
+
+    token = refresh_orbitar_token(token) #обновляем токен, если надо
+
+    if not token:
+        return redirect('/orbitar_login') #если токен не обновился, логинимся заново
+
+
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {token.access_token}',
@@ -92,21 +147,21 @@ def orbitar_all_feed_posts(request):
         data_app = []
         for item in posts:
             id = item['id']
-            if not item['title']:
+            if item['site'] == 'main':
                 link = 'https://orbitar.space/p' + str(id)
             else:
                 link = 'https://orbitar.space/s/' + item['site'] + '/p' + str(id)
-            try:
-                title = item['title']
-            except KeyError:
+            if item['title'] == '':
                 title = 'No Title'
+            else:
+                title = item['title']
             author = item['author']
             created = item['created']
             sub_orbit = item['site']
-            post_id = None
             try:
                 post_id = item['id']
             except KeyError:
+                post_id = None
                 pass
             rating = item['rating']
             comments = item['comments']  # Добавляем комментарии

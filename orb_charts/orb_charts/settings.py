@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-1glzh@8enitra6t)mhid-6!g7905*%srtu890car&b358o(26m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost.com', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost.com', 'orbitarchart.2077911.xyz']
 
 
 # Application definition
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'probe_app',
+    'random_post',
     'django_extensions',
 ]
 
@@ -137,3 +138,6 @@ ORBITAR_CLIENT_ID = os.getenv('ORBITAR_CLIENT_ID')
 ORBITAR_CLIENT_SECRET = os.getenv('ORBITAR_CLIENT_SECRET')
 
 print(BASE_DIR, ORBITAR_CLIENT_ID, ORBITAR_CLIENT_SECRET)
+import os
+
+STATIC_ROOT = os.path.join('/usr/share/nginx/orbitar_chart/', 'static')

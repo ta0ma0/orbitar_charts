@@ -14,6 +14,7 @@
             <option value="rating_min">Рейтинг (мин)</option>
         </select>
         <button type="submit">Сортировать</button>
+        <a href="/random"><button type="button"> Случайный пост</button></a>
     </form>
 
     {% if posts %}
@@ -21,8 +22,9 @@
         <ul>
             {% for post in posts %}
                 <li class="post">
-                    <a href="{{ post.link }}"><p>{{ post.title }}</p></a>
+                    <a href="{{ post.link }}"><p>{{ post.title }} - Link</p></a>
                     <p>Дата публикации: <b>{{ post.created }}</b></p>
+                    <p>POST ID: <b>{{ post.post_id }}</b></p>
                     <p>Подорбита: <b>{{ post.sub_orbit }}</b></p>
                     <p>Комментарии: <b>{{ post.comments }}</b></p>
                     <p>Рейтинг: <b>{{ post.rating }}</b></p>
