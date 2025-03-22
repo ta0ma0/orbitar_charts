@@ -70,9 +70,57 @@ def callback_orbitar(request):
     else:
         return render(request, 'probe_app/orbitar_feed_posts.html', {'error': f'Ошибка при получении токена: {response.text}'})
 
+
+def refresh_orbitar_token(token):
+    if token.expires_at > datetime.now():
+        return token #токен еще валиден
+
+    if not token.refresh_token:
+        return None #нет refresh token, надо логиниться
+
+    client_id = settings.ORBITAR_CLIENT_ID
+    client_secret = settings.ORBITAR_CLIENT_SECRET
+    auth_string = f"{client_id}:{client_secret}"
+    auth_bytes = auth_string.encode("ascii")
+    auth_base64 = base64.b64encode(auth_bytes).decode("ascii")
+
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": f"Basic {auth_base64}",
+    }
+
+    data = {
+        "grant_type": "refresh_token",
+        "refresh_token": token.refresh_token,
+    }
+
+    response = requests.post(settings.ORBITAR_TOKEN_URL, headers=headers, data=data)
+
+    if response.status_code == 200:
+        token_data = response.json()
+        expires_at = datetime.now() + timedelta(seconds=token_data['expires_in'])
+
+        token.access_token = token_data['access_token']
+        token.refresh_token = token_data.get('refresh_token', token.refresh_token) #обновляем refresh токен, если он есть в ответе
+        token.expires_at = expires_at
+        token.save()
+        return token
+    else:
+        return None #ошибка обновления токена
+
 # posts_ids = []
 def orbitar_all_feed_posts(request):
-    token = OrbitarToken.objects.latest('expires_at')
+    try:
+        token = OrbitarToken.objects.latest('expires_at') #получаем последний токен
+    except OrbitarToken.DoesNotExist:
+        return redirect('/orbitar_login') #если токенов нет, логинимся
+
+    token = refresh_orbitar_token(token) #обновляем токен, если надо
+
+    if not token:
+        return redirect('/orbitar_login') #если токен не обновился, логинимся заново
+
+
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {token.access_token}',
