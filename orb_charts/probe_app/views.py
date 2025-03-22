@@ -19,7 +19,7 @@ def orbitar_login(request):
     authorization_url = client.prepare_request_uri(
         settings.ORBITAR_AUTHORIZATION_URL,
         redirect_uri=request.build_absolute_uri('/callback_orbitar'),
-        scope=['feed', 'vote:list'],
+        scope=['feed', 'vote:list', 'post:get'],
         state=state, #добавляем state в запрос
     )
     return redirect(authorization_url)
