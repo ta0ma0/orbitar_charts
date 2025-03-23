@@ -29,3 +29,7 @@ b {
 #random-post-container h1 {
     text-align: center; /* Центрируем заголовок */
 }
+
+img {
+    width: 50%;
+}
