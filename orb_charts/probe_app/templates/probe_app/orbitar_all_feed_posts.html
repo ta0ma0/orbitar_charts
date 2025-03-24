@@ -1,40 +1,58 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Orbitar Global Feed Posts</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbitar Feed</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <form method="get">
-        <label for="sort_by">Сортировать по:</label>
-        <select name="sort_by" id="sort_by">
-            <option value="comments_max">Комментарии (макс)</option>
-            <option value="rating_max">Рейтинг (макс)</option>
-            <option value="rating_min">Рейтинг (мин)</option>
-        </select>
-        <button type="submit">Сортировать</button>
-        <a href="/random"><button type="button"> Случайный пост</button></a>
-    </form>
+    <header class="header">
+        <h1>Глобальная лента</h1>
+        <p class="subheader">Последние 50 постов</p>
+    </header>
 
-    {% if posts %}
-        <h1>Глобальная лента постов (Последние 50)</h1>
-        <ul>
-            {% for post in posts %}
-                <li class="post">
-                    <a href="{{ post.link }}"><p>{{ post.title }} - Link</p></a>
-                    <p>Дата публикации: <b>{{ post.created }}</b></p>
-                    <p>POST ID: <b>{{ post.post_id }}</b></p>
-                    <p>Подорбита: <b>{{ post.sub_orbit }}</b></p>
-                    <p>Комментарии: <b>{{ post.comments }}</b></p>
-                    <p>Рейтинг: <b>{{ post.rating }}</b></p>
-                </li>
-            {% endfor %}
-        </ul>
-    {% elif error %}
-        <p>{{ error }}</p>
-    {% else %}
-        <p>Загрузка...</p>
-    {% endif %}
+    <div class="controls">
+        <form method="get" class="sort-form">
+            <label for="sort_by">Сортировать по:</label>
+            <select name="sort_by" id="sort_by">
+                <option value="comments_max">Комментарии (макс)</option>
+                <option value="rating_max">Рейтинг (макс)</option>
+                <option value="rating_min">Рейтинг (мин)</option>
+            </select>
+            <button type="submit" class="button">Сортировать</button>
+        </form>
+        <a href="/random" class="button secondary-button">Случайный пост</a>
+    </div>
+
+    <main class="content">
+        {% if posts %}
+            <ul class="post-list">
+                {% for post in posts %}
+                    <li class="post-item">
+                        <a href="{{ post.link }}" class="post-link">
+                            <h2 class="post-title">{{ post.title }}</h2>
+                        </a>
+                        <div class="post-meta">
+                            <span class="meta-item">Дата: <b>{{ post.created }}</b></span>
+                            <span class="meta-item">ID: <b>{{ post.post_id }}</b></span>
+                            <span class="meta-item">Подорбита: <b>{{ post.sub_orbit }}</b></span>
+                            <span class="meta-item">Комментарии: <b>{{ post.comments }}</b></span>
+                            <span class="meta-item">Рейтинг: <b>{{ post.rating }}</b></span>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% elif error %}
+            <div class="error-message">{{ error }}</div>
+        {% else %}
+            <div class="loading-message">Загрузка...</div>
+        {% endif %}
+    </main>
+
+    <footer class="footer">
+        <p>&copy; Orbitar Global Feed</p>
+    </footer>
 </body>
 </html>
