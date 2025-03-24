@@ -1,38 +1,53 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Orbitar Random Post</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Случайный пост | Orbitar</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <a href="{% url 'probe_app:orbitar_all_feed_posts' %}">На сортировочную.</a>
-    <button type="button" id="reload-random-post">Ещё один случайный пост</button>
-    <div id="random-post-container">
-        
+    <header class="header">
+        <h1>Случайный пост</h1>
+    </header>
 
+    <div class="controls">
+        <a href="{% url 'probe_app:orbitar_all_feed_posts' %}" class="button secondary-button">Вернуться к ленте</a>
+        <button type="button" id="reload-random-post" class="button">Ещё один случайный пост</button>
+    </div>
 
-    {% if post %}
-        <h1>Ура! Случайный пост!</h1>
-        <li class="post">
-            <a href="{{ post.link }}">    LINK</a>
-            <p>POST ID: <b>{{ post.post_id }}</b></p>
-            <p>Заголовок: <b>{{ post.title }}</b></p>
-            <p>Дата публикации: <b>{{ post.created }}</b></p>
-            <p>Подорбита: <b>{{ post.sub_orb }}</b></p>
-            <p>Рейтинг: <b>{{ post.rating }}</b></p><br>
-            {{ post.content |safe }}
-        </li>
-    {% elif error %}
-        <p>{{ error }}</p>
-    {% else %}
-        <p>Загрузка...</p>
-    {% endif %}
-</div>
-<script>
-    document.getElementById('reload-random-post').addEventListener('click', function() {
-        location.reload(); // Перезагружаем текущую страницу
-    });
-</script>
+    <main class="content">
+        <div id="random-post-container">
+            {% if post %}
+                <div class="post-item">
+                    <h2 class="post-title"><a href="{{ post.link }}" class="post-link">{{ post.title }}</a></h2>
+                    <div class="post-meta">
+                        <span class="meta-item">ID: <b>{{ post.post_id }}</b></span>
+                        <span class="meta-item">Дата публикации: <b>{{ post.created }}</b></span>
+                        <span class="meta-item">Подорбита: <b>{{ post.sub_orb }}</b></span>
+                        <span class="meta-item">Рейтинг: <b>{{ post.rating }}</b></span>
+                    </div>
+                    <div class="post-content">
+                        {{ post.content |safe }}
+                    </div>
+                </div>
+            {% elif error %}
+                <div class="error-message">{{ error }}</div>
+            {% else %}
+                <div class="loading-message">Загрузка случайного поста...</div>
+            {% endif %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; Orbitar Global Feed</p>
+    </footer>
+
+    <script>
+        document.getElementById('reload-random-post').addEventListener('click', function() {
+            location.reload(); // Перезагружаем текущую страницу
+        });
+    </script>
 </body>
 </html>
