@@ -36,8 +36,8 @@ def orbitar_login(request):
 
 def callback_orbitar(request):
     state = request.GET.get('state')
-    # oauth_state = request.session.pop('oauth_state', None) # Извлекаем и удаляем из сессии
-
+    oauth_state = request.session.pop('oauth_state', None) # Извлекаем и удаляем из сессии
+    print(oauth_state, state)
     if not oauth_state or state != oauth_state:
         return render(request, 'probe_app/orbitar_feed_posts.html', {'error': 'Неверный state или state отсутствует'})
 
