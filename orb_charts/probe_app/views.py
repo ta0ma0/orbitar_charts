@@ -8,6 +8,7 @@ import json
 import secrets
 import base64
 from django.utils import timezone as dj_timezone
+from django.contrib.auth.decorators import login_required
 
 ids = []  # Объявляем переменную ids на глобальном уровне
 data_app_list = []
