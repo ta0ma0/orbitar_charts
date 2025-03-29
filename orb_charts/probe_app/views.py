@@ -25,11 +25,20 @@ def orbitar_login(request):
     )
     return redirect(authorization_url)
 
+import base64
+import secrets
+from datetime import datetime, timedelta
+import requests
+from django.shortcuts import render, redirect
+from django.conf import settings
+from .models import OrbitarToken
+
 def callback_orbitar(request):
     state = request.GET.get('state')
-    if state != request.session.get('oauth_state'):
-        return render(request, 'probe_app/orbitar_feed_posts.html', {'error': 'Неверный state'})
-    del request.session['oauth_state']
+    oauth_state = request.session.pop('oauth_state', None) # Извлекаем и удаляем из сессии
+
+    if not oauth_state or state != oauth_state:
+        return render(request, 'probe_app/orbitar_feed_posts.html', {'error': 'Неверный state или state отсутствует'})
 
     authorization_code = request.GET.get('code')  # Получаем код авторизации из ответа
 
@@ -54,24 +63,30 @@ def callback_orbitar(request):
         "redirect_uri": redirect_uri,
     }
 
-    response = requests.post(settings.ORBITAR_TOKEN_URL, headers=headers, data=data)
+    try:
+        response = requests.post(settings.ORBITAR_TOKEN_URL, headers=headers, data=data, timeout=10) # Добавил таймаут
+        response.raise_for_status() # Добавил проверку статуса ответа
+    except requests.exceptions.RequestException as e:
+        return render(request, 'probe_app/orbitar_feed_posts.html', {'error': f'Ошибка запроса к API токенов: {e}'})
 
     if response.status_code == 200:
-        token_data = response.json()
-        expires_at = datetime.now() + timedelta(seconds=token_data['expires_in'])
+        try:
+            token_data = response.json()
+            expires_at = datetime.now() + timedelta(seconds=token_data['expires_in'])
 
-        token = OrbitarToken(
-            access_token=token_data['access_token'],
-            refresh_token=token_data.get('refresh_token'),
-            expires_at=expires_at,
-        )
-        token.save()
-        print('token saved!')
+            token = OrbitarToken(
+                access_token=token_data['access_token'],
+                refresh_token=token_data.get('refresh_token'),
+                expires_at=expires_at,
+            )
+            token.save()
+            print('token saved!')
 
-        return redirect('/orbitar_all_feed_posts')
+            return redirect('/orbitar_all_feed_posts')
+        except (KeyError, ValueError) as e: # Обработка ошибок парсинга JSON
+            return render(request, 'probe_app/orbitar_feed_posts.html', {'error': f'Ошибка обработки ответа API токенов: {e}'})
     else:
         return render(request, 'probe_app/orbitar_feed_posts.html', {'error': f'Ошибка при получении токена: {response.text}'})
-
 
 def refresh_orbitar_token(token):
     #делаем expires_at aware, если он naive
