@@ -57,8 +57,9 @@ def refresh_orbitar_token(token):
         return None #ошибка обновления токена
 
 
-@login_required
+@login_required(login_url='/callback_orbitar/')
 def random_post(request):
+    
     try:
         token = OrbitarToken.objects.latest('expires_at') #получаем последний токен
     except OrbitarToken.DoesNotExist:
