@@ -38,8 +38,8 @@ def callback_orbitar(request):
     state = request.GET.get('state')
     oauth_state = request.session.pop('oauth_state', None) # Извлекаем и удаляем из сессии
     print(oauth_state, state)
-    if not oauth_state or state != oauth_state:
-        return render(request, 'probe_app/orbitar_feed_posts.html', {'error': 'Неверный state или state отсутствует'})
+    # if not oauth_state or state != oauth_state:
+    #     return render(request, 'probe_app/orbitar_feed_posts.html', {'error': 'Неверный state или state отсутствует'})
 
     authorization_code = request.GET.get('code')  # Получаем код авторизации из ответа
 
@@ -223,7 +223,7 @@ def _get_voites(ids):
             'type': 'post',
             'id': f'{id}',  
         }
-        print(id)
+        # print(id)
         response = requests.post(settings.ORBITAR_VOTES_LIST, headers=headers, json=data)
 
 
@@ -231,7 +231,7 @@ def _get_voites(ids):
             votes_data = response.json()
             list_votes = [item['vote'] for item in votes_data['payload']['votes']]
             total_votes = _summ_votes(list_votes)
-            print(total_votes)
+            # print(total_votes)
             try:
                 id_votes[id] = total_votes
             except Exception as err:
