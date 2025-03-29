@@ -29,7 +29,7 @@ def orbitar_login(request):
         'response_type': 'code',
         'state': state,
     }
-
+    print(state)
     authorization_url = f"{settings.ORBITAR_AUTHORIZATION_URL}?{urlencode(params)}"
 
     return redirect(authorization_url)
