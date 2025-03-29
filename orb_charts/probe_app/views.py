@@ -25,7 +25,7 @@ def orbitar_login(request):
     params = {
         'client_id': settings.ORBITAR_CLIENT_ID,
         'redirect_uri': request.build_absolute_uri('/callback_orbitar'),
-        'scope': 'feed vote:list post:get',  # Убедитесь, что здесь пробелы, а не запятые
+        'scope': 'feed vote:list post:get',
         'response_type': 'code',
         'state': state,
     }
