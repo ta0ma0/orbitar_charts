@@ -9,6 +9,9 @@ import secrets
 import base64
 from django.utils import timezone as dj_timezone
 from django.contrib.auth.decorators import login_required
+import logging
+
+logger = logging.getLogger(__name__)
 
 ids = []  # Объявляем переменную ids на глобальном уровне
 data_app_list = []
@@ -35,6 +38,7 @@ def orbitar_login(request):
     return redirect(authorization_url)
 
 def callback_orbitar(request):
+
     state = request.GET.get('state')
     oauth_state = request.session.pop('oauth_state', None) # Извлекаем и удаляем из сессии
     print(oauth_state, state)
@@ -63,11 +67,13 @@ def callback_orbitar(request):
         "nonce": nonce,
         "redirect_uri": redirect_uri,
     }
-
+    logger.debug(f"Request data: {data}")
+    logger.debug(f"Request headers: {headers}")
     try:
         response = requests.post(settings.ORBITAR_TOKEN_URL, headers=headers, data=data, timeout=10) # Добавил таймаут
         response.raise_for_status() # Добавил проверку статуса ответа
     except requests.exceptions.RequestException as e:
+        logger.error(f"Error requesting token API: {e}")
         return render(request, 'probe_app/orbitar_feed_posts.html', {'error': f'Ошибка запроса к API токенов: {e}'})
 
     if response.status_code == 200:
