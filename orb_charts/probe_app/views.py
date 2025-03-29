@@ -13,25 +13,26 @@ from django.contrib.auth.decorators import login_required
 ids = []  # Объявляем переменную ids на глобальном уровне
 data_app_list = []
 
-def orbitar_login(request):
-    client = WebApplicationClient(settings.ORBITAR_CLIENT_ID)
-    state = secrets.token_urlsafe(16) #генерируем state
-    request.session['oauth_state'] = state #сохраняем state в сессию
-    authorization_url = client.prepare_request_uri(
-        settings.ORBITAR_AUTHORIZATION_URL,
-        redirect_uri=request.build_absolute_uri('/callback_orbitar'),
-        scope=['feed', 'vote:list', 'post:get'],
-        state=state, #добавляем state в запрос
-    )
-    return redirect(authorization_url)
-
-import base64
 import secrets
-from datetime import datetime, timedelta
-import requests
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.conf import settings
-from .models import OrbitarToken
+from urllib.parse import urlencode
+
+def orbitar_login(request):
+    state = secrets.token_urlsafe(16)  # генерируем state
+    request.session['oauth_state'] = state  # сохраняем state в сессию
+
+    params = {
+        'client_id': settings.ORBITAR_CLIENT_ID,
+        'redirect_uri': request.build_absolute_uri('/callback_orbitar'),
+        'scope': 'feed vote:list post:get',  # Убедитесь, что здесь пробелы, а не запятые
+        'response_type': 'code',
+        'state': state,
+    }
+
+    authorization_url = f"{settings.ORBITAR_AUTHORIZATION_URL}?{urlencode(params)}"
+
+    return redirect(authorization_url)
 
 def callback_orbitar(request):
     state = request.GET.get('state')
