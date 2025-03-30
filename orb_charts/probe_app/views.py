@@ -36,7 +36,8 @@ def orbitar_login(request):
 def callback_orbitar(request):
     state = request.GET.get('state')
     logger.debug(state, request.session.get('oauth_state'))
-    print
+    print(state)
+    print(request.session.get('oauth_state'))
     if state != request.session.get('oauth_state'):
         return render(request, 'probe_app/orbitar_feed_posts.html', {'error': 'Неверный state'})
     del request.session['oauth_state']
