@@ -84,7 +84,7 @@ def callback_orbitar(request):
         redirect_url = f'/orbitar_all_feed_posts?{urlencode(params)}'
 
 
-        return redirect(redirect_url)
+        return render(request, redirect_url)
     else:
         return render(request, 'probe_app/orbitar_feed_posts.html', {'error': f'Ошибка при получении токена: {response.text}'})
 
