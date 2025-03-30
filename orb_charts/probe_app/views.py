@@ -41,7 +41,7 @@ def callback_orbitar(request):
     session_state = request.session.get('oauth_state')
     if state != session_state:
         return render(request, 'probe_app/orbitar_feed_posts.html', {'error': 'Неверный state'})
-    del request.session['oauth_state']
+    # del request.session['oauth_state']
 
     authorization_code = request.GET.get('code')  # Получаем код авторизации из ответа
 
@@ -64,6 +64,7 @@ def callback_orbitar(request):
         "code": authorization_code,
         "nonce": nonce,
         "redirect_uri": redirect_uri,
+        "state": state
     }
 
     response = requests.post(settings.ORBITAR_TOKEN_URL, headers=headers, data=data)
@@ -128,7 +129,7 @@ def refresh_orbitar_token(token):
         return None #ошибка обновления токена
 
 # posts_ids = []
-@login_required(login_url='/callback_orbitar/')
+@login_required(login_url='/orbitar_login')
 def orbitar_all_feed_posts(request):
     try:
         token = OrbitarToken.objects.latest('expires_at') #получаем последний токен
