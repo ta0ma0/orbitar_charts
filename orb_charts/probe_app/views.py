@@ -129,7 +129,7 @@ def refresh_orbitar_token(token):
         return None #ошибка обновления токена
 
 # posts_ids = []
-@login_required(login_url='/orbitar_login')
+@login_required(login_url='/callback_orbitar')
 def orbitar_all_feed_posts(request):
     try:
         token = OrbitarToken.objects.latest('expires_at') #получаем последний токен
