@@ -10,6 +10,7 @@ import base64
 from django.utils import timezone as dj_timezone
 from django.contrib.auth.decorators import login_required
 import logging
+from urllib.parse import urlencode, urlparse, parse_qs
 
 logger = logging.getLogger(__name__)
 
