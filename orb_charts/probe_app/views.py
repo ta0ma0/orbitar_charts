@@ -102,7 +102,7 @@ def callback_orbitar(request):
         # Это второй вызов callback_orbitar (после редиректа)
         parsed_url = urlparse(request.build_absolute_uri())
         query_params = parse_qs(parsed_url.query)
-        state = query_params.get('state', [None])[0]
+        state = query_params.get('state', [None])[0]  # Извлекаем state из параметров URL
         logger.debug(f"Second call - State: {state}")
 
         # Проверяем, есть ли state в параметрах запроса
