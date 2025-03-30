@@ -134,6 +134,7 @@ def refresh_orbitar_token(token):
 # posts_ids = []
 @login_required(login_url='/callback_orbitar')
 def orbitar_all_feed_posts(request):
+    state = request.GET.get('state')
     try:
         token = OrbitarToken.objects.latest('expires_at') #получаем последний токен
     except OrbitarToken.DoesNotExist:
