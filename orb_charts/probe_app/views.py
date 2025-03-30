@@ -80,8 +80,11 @@ def callback_orbitar(request):
         )
         token.save()
         print('token saved!')
+        params = {'state': state}
+        redirect_url = f'/orbitar_all_feed_posts?{urlencode(params)}'
 
-        return redirect('/orbitar_all_feed_posts')
+
+        return redirect(redirect_url)
     else:
         return render(request, 'probe_app/orbitar_feed_posts.html', {'error': f'Ошибка при получении токена: {response.text}'})
 
