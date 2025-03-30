@@ -34,58 +34,83 @@ def orbitar_login(request):
     return redirect(authorization_url)
 
 def callback_orbitar(request):
-    state = request.GET.get('state')
-    logger.debug(state, request.session.get('oauth_state'))
-    print(state, type(state))
-    print(request.session.get('oauth_state'), type(request.session.get('oauth_state')))
-    session_state = request.session.get('oauth_state')
-    if state != session_state:
-        return render(request, 'probe_app/orbitar_feed_posts.html', {'error': 'Неверный state'})
-    # del request.session['oauth_state']
+    # Проверяем, есть ли параметр 'code' в запросе
+    if 'code' in request.GET:
+        # Это первый вызов callback_orbitar (после авторизации)
+        state = request.GET.get('state')
+        oauth_state = request.session.pop('oauth_state', None)
+        logger.debug(f"First call - State: {state}, Session state: {oauth_state}")
 
-    authorization_code = request.GET.get('code')  # Получаем код авторизации из ответа
+        if not oauth_state or state != oauth_state:
+            return render(request, 'probe_app/orbitar_feed_posts.html', {'error': 'Неверный state или state отсутствует'})
 
-    client_id = settings.ORBITAR_CLIENT_ID
-    client_secret = settings.ORBITAR_CLIENT_SECRET
-    auth_string = f"{client_id}:{client_secret}"
-    auth_bytes = auth_string.encode("ascii")
-    auth_base64 = base64.b64encode(auth_bytes).decode("ascii")
+        authorization_code = request.GET.get('code')
 
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Authorization": f"Basic {auth_base64}",
-    }
+        client_id = settings.ORBITAR_CLIENT_ID
+        client_secret = settings.ORBITAR_CLIENT_SECRET
+        auth_string = f"{client_id}:{client_secret}"
+        auth_bytes = auth_string.encode("ascii")
+        auth_base64 = base64.b64encode(auth_bytes).decode("ascii")
 
-    nonce = secrets.token_urlsafe(16)
-    redirect_uri = request.build_absolute_uri('/callback_orbitar')
+        headers = {
+            "Content-Type": "application/x-www--form-urlencoded",
+            "Authorization": f"Basic {auth_base64}",
+        }
 
-    data = {
-        "grant_type": "authorization_code",
-        "code": authorization_code,
-        "nonce": nonce,
-        "redirect_uri": redirect_uri,
-        "state": state
-    }
+        nonce = secrets.token_urlsafe(16)
+        redirect_uri = request.build_absolute_uri('/callback_orbitar')
 
-    response = requests.post(settings.ORBITAR_TOKEN_URL, headers=headers, data=data)
+        data = {
+            "grant_type": "authorization_code",
+            "code": authorization_code,
+            "nonce": nonce,
+            "redirect_uri": redirect_uri,
+            "state": state
+        }
 
-    if response.status_code == 200:
-        token_data = response.json()
-        expires_at = datetime.now() + timedelta(seconds=token_data['expires_in'])
+        try:
+            response = requests.post(settings.ORBITAR_TOKEN_URL, headers=headers, data=data)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error getting token: {e}")
+            return render(request, 'probe_app/orbitar_feed_posts.html', {'error': f'Ошибка при получении токена: {e}'})
 
-        token = OrbitarToken(
-            access_token=token_data['access_token'],
-            refresh_token=token_data.get('refresh_token'),
-            expires_at=expires_at,
-        )
-        token.save()
-        print('token saved!')
-        params = {'state': state}
-        redirect_url = f'/orbitar_all_feed_posts/?{urlencode(params)}'
+        if response.status_code == 200:
+            try:
+                token_data = response.json()
+                expires_at = datetime.now() + timedelta(seconds=token_data['expires_in'])
 
-        return redirect(redirect_url)  # Используем redirect для перенаправления
+                token = OrbitarToken(
+                    access_token=token_data['access_token'],
+                    refresh_token=token_data.get('refresh_token'),
+                    expires_at=expires_at,
+                )
+                token.save()
+                logger.debug('Token saved!')
+
+                params = {'state': state}
+                redirect_url = f'/orbitar_all_feed_posts/?{urlencode(params)}'
+
+                return redirect(redirect_url)  # Используем redirect для перенаправления
+            except (KeyError, ValueError) as e:
+                logger.error(f"Error processing token API response: {e}")
+                return render(request, 'probe_app/orbitar_feed_posts.html', {'error': f'Ошибка обработки ответа API токенов: {e}'})
+        else:
+            logger.error(f"Error getting token: {response.text}")
+            return render(request, 'probe_app/orbitar_feed_posts.html', {'error': f'Ошибка при получении токена: {response.text}'})
     else:
-        return render(request, 'probe_app/orbitar_feed_posts.html', {'error': f'Ошибка при получении токена: {response.text}'})
+        # Это второй вызов callback_orbitar (после редиректа)
+        parsed_url = urlparse(request.build_absolute_uri())
+        query_params = parse_qs(parsed_url.query)
+        state = query_params.get('state', [None])[0]
+        logger.debug(f"Second call - State: {state}")
+
+        # Проверяем, есть ли state в параметрах запроса
+        if not state:
+            return render(request, 'probe_app/orbitar_feed_posts.html', {'error': 'State отсутствует'})
+
+        # Убираем лишний код
+        return redirect('/orbitar_all_feed_posts/?state='+state)
 
 def refresh_orbitar_token(token):
     #делаем expires_at aware, если он naive
